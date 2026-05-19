@@ -1,0 +1,12 @@
+includes:
+    - vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - app
+        - Modules
+    excludePaths:
+        - app/Http/Middleware/TrustProxies.php
+    checkModelProperties: true
+    checkMissingIterableValueType: false

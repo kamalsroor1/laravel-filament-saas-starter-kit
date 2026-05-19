@@ -1,0 +1,259 @@
+# Cursor Rules — Enterprise SaaS Starter Kit
+# Laravel 12 + PHP 8.4 + Filament 4 + Modular Monolith
+
+## Role
+You are a senior Laravel engineer working on an Enterprise SaaS platform.
+You write clean, typed, testable PHP 8.4 code following Clean Architecture principles.
+Always read CLAUDE.md before generating any code.
+
+---
+
+## Stack
+- PHP 8.4 (use readonly properties, enums, fibers, union types, match expressions)
+- Laravel 12
+- Filament 4 (UI only — never business logic)
+- PostgreSQL + Redis
+- PestPHP for all tests
+- Docker for all environments
+
+---
+
+## Architecture Rules
+
+### Layer enforcement
+1. Controllers → call Actions only, never Services or Models directly
+2. Filament Resources/Pages/Widgets → call Actions only
+3. Actions → orchestrate Services and fire Events
+4. Services → reusable domain logic, no HTTP concerns
+5. Repositories → database access only, return Models or Collections
+6. Models → Eloquent relations and casts only, no business logic
+
+### Always use DTOs
+```php
+// Every Action receives and returns DTOs
+final class CreateUserAction
+{
+    public function __construct(
+        private readonly UserRepository $users,
+    ) {}
+
+    public function handle(CreateUserDTO $dto): User
+    {
+        $user = $this->users->create($dto);
+        event(new UserRegistered($user));
+        return $user;
+    }
+}
+```
+
+### Always fire Events for state changes
+```php
+event(new TenantCreated($tenant));
+event(new SubscriptionActivated($subscription));
+event(new InvoicePaid($invoice));
+```
+
+---
+
+## Code Style
+
+- Declare strict types in every file: `declare(strict_types=1);`
+- Use `final` on all classes unless explicitly designed for extension
+- Use `readonly` for DTO properties
+- Use PHP 8.4 constructor property promotion
+- Use named arguments for clarity in complex calls
+- Use `match` instead of `switch` always
+- Prefer enums over string/int constants
+- No `array` type hints — use typed collections or DTOs
+
+### DTO pattern
+```php
+final readonly class CreateTenantDTO
+{
+    public function __construct(
+        public string $name,
+        public string $email,
+        public string $plan,
+        public ?string $domain = null,
+    ) {}
+
+    public static function fromRequest(CreateTenantRequest $request): self
+    {
+        return new self(
+            name: $request->validated('name'),
+            email: $request->validated('email'),
+            plan: $request->validated('plan'),
+            domain: $request->validated('domain'),
+        );
+    }
+
+    public static function fromArray(array $data): self
+    {
+        return new self(...$data);
+    }
+}
+```
+
+### Action pattern
+```php
+final class CreateTenantAction
+{
+    public function __construct(
+        private readonly TenantRepository $tenants,
+        private readonly BillingService $billing,
+    ) {}
+
+    public function handle(CreateTenantDTO $dto): Tenant
+    {
+        $tenant = $this->tenants->create($dto);
+        $this->billing->setupFreeTrial($tenant);
+        event(new TenantCreated($tenant));
+        return $tenant;
+    }
+}
+```
+
+### Repository pattern
+```php
+final class TenantRepository
+{
+    public function create(CreateTenantDTO $dto): Tenant
+    {
+        return Tenant::create([
+            'name'  => $dto->name,
+            'email' => $dto->email,
+        ]);
+    }
+
+    public function findByDomain(string $domain): ?Tenant
+    {
+        return Tenant::where('domain', $domain)->first();
+    }
+}
+```
+
+---
+
+## Module Rules
+
+Every module must have:
+- `module.json` with `enabled` flag
+- `ModuleServiceProvider` that checks `enabled` before registering anything
+- Own migrations, routes, config
+- Own tests folder
+
+### Checking if module is enabled
+```php
+if (! app(ModuleManager::class)->isEnabled('billing')) {
+    return;
+}
+```
+
+---
+
+## Multi-Tenancy Rules
+
+- Every tenant model: use `BelongsToTenant` trait
+- Every tenant migration: include `$table->foreignUlid('tenant_id')->index()`
+- Never bypass `TenantScope` global scope
+- Cache: always prefix with tenant ID
+- Queues: implement `TenantAware` interface on all tenant jobs
+
+---
+
+## AI Provider Rules
+
+NEVER call AI providers directly. Always use the interface:
+
+```php
+// WRONG
+$client = OpenAI::client(config('openai.key'));
+$client->completions()->create([...]);
+
+// CORRECT
+$provider = app(AIProviderInterface::class);
+$response = $provider->complete(new AIRequestDTO(
+    prompt: $prompt,
+    model: config('ai.model'),
+    maxTokens: 1000,
+));
+```
+
+Supported providers: `claude`, `openai`, `gemini`
+Set via: `AI_PROVIDER=claude` in `.env`
+
+---
+
+## Payment Gateway Rules
+
+NEVER call payment SDKs directly. Always use the interface:
+
+```php
+// WRONG
+$stripe = new \Stripe\StripeClient(config('stripe.secret'));
+
+// CORRECT
+$gateway = app(PaymentGatewayInterface::class);
+$result = $gateway->charge(new ChargeDTO(...));
+```
+
+---
+
+## Filament Rules
+
+```php
+// WRONG — logic in Filament
+public function save(): void
+{
+    User::create($this->form->getState()); // ❌
+}
+
+// CORRECT — delegate to Action
+public function save(): void
+{
+    $dto = CreateUserDTO::fromArray($this->form->getState());
+    app(CreateUserAction::class)->handle($dto); // ✅
+}
+```
+
+---
+
+## Testing Rules
+
+- Use PestPHP, never PHPUnit syntax
+- Every Action → Feature test
+- Every Service → Unit test
+- Always test tenant isolation
+
+```php
+it('creates a tenant and fires event', function () {
+    Event::fake([TenantCreated::class]);
+
+    $dto = new CreateTenantDTO(
+        name: 'Acme Corp',
+        email: 'admin@acme.com',
+        plan: 'starter',
+    );
+
+    $tenant = app(CreateTenantAction::class)->handle($dto);
+
+    expect($tenant)->toBeInstanceOf(Tenant::class)
+        ->and($tenant->name)->toBe('Acme Corp');
+
+    Event::assertDispatched(TenantCreated::class);
+});
+```
+
+---
+
+## What NOT to generate
+
+- No `DB::` facade — use Repositories
+- No business logic in Controllers
+- No business logic in Filament classes
+- No direct Gateway or AI SDK calls
+- No God classes (max 200 lines)
+- No `dd()`, `dump()`, `var_dump()`
+- No skipping DTOs for "simple" cases
+- No `array` return types when a DTO or Model works
+- No `string` IDs without UUIDs/ULIDs
