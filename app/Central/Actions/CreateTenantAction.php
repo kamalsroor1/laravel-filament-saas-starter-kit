@@ -9,12 +9,14 @@ use App\Central\Events\TenantCreated;
 use App\Central\Models\Tenant;
 use App\Central\Repositories\TenantRepository;
 use App\Core\Actions\BaseAction;
+use App\Core\Tenancy\Contracts\TenantProvisioningInterface;
 use Illuminate\Support\Facades\Event;
 
 final class CreateTenantAction extends BaseAction
 {
     public function __construct(
         private readonly TenantRepository $tenantRepository,
+        private readonly TenantProvisioningInterface $tenantProvisioningService,
     ) {
     }
 
@@ -40,7 +42,15 @@ final class CreateTenantAction extends BaseAction
             'trial_ends_at' => $dto->trial_ends_at,
         ]);
 
-        // Placeholder: default role seeding hook for central tenant onboarding.
+        try {
+            $this->tenantProvisioningService->createDatabase($tenant);
+            $this->tenantProvisioningService->migrateAndSeedTenant($tenant);
+        } catch (\Throwable $throwable) {
+            $this->tenantProvisioningService->dropDatabaseIfExists($tenant);
+            $tenant->delete();
+            throw $throwable;
+        }
+
         Event::dispatch(new TenantCreated($tenant));
 
         return $tenant;
