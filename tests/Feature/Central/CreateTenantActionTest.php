@@ -7,12 +7,18 @@ use App\Central\DTOs\CreateTenantDTO;
 use App\Central\Enums\TenantStatus;
 use App\Central\Events\TenantCreated;
 use App\Central\Models\Tenant;
+use App\Core\Tenancy\Contracts\TenantProvisioningInterface;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
+use Mockery\MockInterface;
 
 it('creates tenant and fires tenant created event', function (): void {
     Event::fake();
+    $this->mock(TenantProvisioningInterface::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('createDatabase')->once();
+        $mock->shouldReceive('migrateAndSeedTenant')->once();
+    });
 
     $dto = new CreateTenantDTO(
         name: 'Acme Inc',
