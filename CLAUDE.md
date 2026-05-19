@@ -196,6 +196,20 @@ Tenancy::runForTenant($tenant, function () {
 });
 ```
 
+### Domain Planning (Required)
+
+- Implement **Project Subdomain**: `{project}.{central_domain}`.
+- Implement **Custom Domain** per tenant/project with unique domain constraints.
+- Resolve tenant/project context using domain before any tenant query.
+- Preferred resolution order:
+  1. custom domain
+  2. project subdomain
+  3. unknown domain handler
+- Test coverage must include:
+  - subdomain routing correctness
+  - custom domain routing correctness
+  - cross-tenant isolation on mismatched domains
+
 ---
 
 ## AI Provider Architecture
@@ -357,3 +371,19 @@ google/generative-ai-php       → Gemini SDK
 - Do not create God classes — max 200 lines per class
 - Do not skip DTOs — even for simple operations
 - Do not add `dd()`, `dump()`, or `var_dump()` in committed code
+
+---
+
+## AI Roles: History Tracking (Mandatory)
+
+- Always review the `ai history/` folder before starting new implementation work.
+- At the end of every completed task, update or append today's history file:
+  - Path format: `ai history/YYYY-MM-DD.md`
+  - Example: `ai history/2026-05-19.md`
+- History entry must include:
+  - what was requested
+  - what changed (files/modules/services)
+  - blockers/errors and how they were resolved
+  - verification steps and outcomes (tests/lint/runtime checks)
+- If today's file does not exist, create it.
+- Never skip writing history after finishing a task.

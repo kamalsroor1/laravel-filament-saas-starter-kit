@@ -299,3 +299,40 @@ REVERB_*, STRIPE_*, PAYMOB_*, TAP_*,
 ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY,
 SENTRY_LARAVEL_DSN
 ```
+
+---
+
+## PROMPT: Task 4 - Project Subdomain + Custom Domain Routing
+
+```
+You are a senior Laravel 12 architect.
+Read CLAUDE.md and .clauderules before writing anything.
+
+Goal:
+Implement tenant/project domain resolution with support for:
+1) project subdomains
+2) custom domains
+
+Files to create:
+app/Core/Tenancy/DTOs/ResolveDomainDTO.php
+app/Core/Tenancy/Actions/ResolveDomainAction.php
+app/Core/Tenancy/Services/DomainRoutingService.php
+app/Core/Tenancy/Repositories/DomainRepository.php
+app/Core/Tenancy/Models/DomainMapping.php
+app/Core/Tenancy/Middleware/ResolveTenantByDomain.php
+database/migrations/xxxx_create_domain_mappings_table.php
+tests/Feature/Tenancy/DomainResolutionTest.php
+
+Rules:
+- Project subdomain pattern: {project}.{CENTRAL_DOMAIN}
+- Custom domain has priority over subdomain
+- Every mapping must include tenant_id and project identifier
+- Domain cache keys must be tenant-safe
+- Unknown domains must return safe not-found response without leaking tenant data
+
+Critical tests:
+1. resolves project by subdomain correctly
+2. resolves project by custom domain correctly
+3. custom domain takes priority over subdomain collision
+4. unknown domain returns not-found and no tenant context is booted
+```
