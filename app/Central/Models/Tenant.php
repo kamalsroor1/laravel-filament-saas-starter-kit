@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Central\Models;
 
 use App\Central\Enums\TenantStatus;
+use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 
 final class Tenant extends Model
@@ -41,5 +43,10 @@ final class Tenant extends Model
             'trial_ends_at' => 'datetime',
             'status' => TenantStatus::class,
         ];
+    }
+
+    protected static function newFactory(): Factory
+    {
+        return TenantFactory::new();
     }
 }
