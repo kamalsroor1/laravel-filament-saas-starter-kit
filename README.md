@@ -159,3 +159,4 @@ make phpstan
 - Project keeps AI execution history under `ai history/`.
 - AI role must read history before starting a task and append today's file after finishing.
 - Daily file format: `ai history/YYYY-MM-DD.md`.
+- Reusable template: `ai history/_template.md`.
