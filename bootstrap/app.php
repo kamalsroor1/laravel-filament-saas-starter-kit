@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Core\Tenancy\Middleware\InitializeTenancy;
+use App\Core\Tenancy\Middleware\ResolveTenantByDomain;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'tenancy.initialize' => InitializeTenancy::class,
+            'tenancy.resolve-domain' => ResolveTenantByDomain::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

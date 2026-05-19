@@ -160,3 +160,50 @@ make phpstan
 - AI role must read history before starting a task and append today's file after finishing.
 - Daily file format: `ai history/YYYY-MM-DD.md`.
 - Reusable template: `ai history/_template.md`.
+
+## Implementation Status
+
+### Completed Tasks
+
+1. Phase 1 Task 1: Core base architecture classes
+- `BaseAction`, `BaseDTO`, `BaseService`, `BaseRepository`, repository contract, and domain exceptions.
+- Unit coverage for core base classes.
+
+2. Phase 1 Task 2: Module system
+- Module loader/manager/service provider.
+- `config/modules.php` and enable/disable logic with cache.
+- Feature tests for module enablement, saas-only behavior, and provider boot.
+
+3. Phase 1 Task 3: Multi-tenancy foundation
+- Central `Tenant` model, tenant creation action/repository/event/DTO.
+- `TenancyManager` database-per-tenant runtime switching.
+- Tenant provisioning service + automation commands:
+  - `tenant:create`
+  - `tenants:migrate`
+  - `tenants:seed`
+- Feature tests for tenant creation and tenant isolation.
+
+4. Phase 2 Task 4 (started and implemented): Domain routing
+- Domain mapping model/migration/repository/service/action/DTO.
+- Domain resolution middleware with strict order:
+  1) custom domain
+  2) project subdomain
+  3) safe 404 fallback
+- `/whoami` debug endpoint behind `tenancy.resolve-domain`.
+- Feature tests for subdomain/custom domain/collision priority/unknown domain.
+
+### Current Position
+
+- Current progress is at **Phase 2 domain routing implementation** with test coverage in place.
+- Tenant database strategy is **PostgreSQL per tenant**.
+
+### TODO (Next Practical Steps)
+
+1. Hook real project/domain onboarding workflow from admin/UI to create `domain_mappings` automatically.
+2. Add domain ownership verification flow (DNS/HTTP verification) before activating custom domains.
+3. Add wildcard/dev DNS guidance and local host routing notes for real browser domain testing.
+4. Add production-safe tenant database provisioning guardrails (permissions, retry policy, observability).
+5. Continue with Phase 3 modules:
+- Billing
+- AI module standardization
+- Notifications / audit logs / media / settings
