@@ -28,6 +28,13 @@ final class CreateTenantAction extends BaseAction
             'name' => $dto->name,
             'email' => $dto->email,
             'domain' => $dto->domain,
+            'database_connection' => $dto->database_connection,
+            'database_driver' => $dto->database_driver,
+            'database_host' => $dto->database_host,
+            'database_port' => $dto->database_port,
+            'database_name' => $dto->database_name,
+            'database_username' => $dto->database_username,
+            'database_password' => $dto->database_password,
             'status' => $dto->status->value,
             'settings' => $dto->settings,
             'trial_ends_at' => $dto->trial_ends_at,
@@ -39,4 +46,3 @@ final class CreateTenantAction extends BaseAction
         return $tenant;
     }
 }
-

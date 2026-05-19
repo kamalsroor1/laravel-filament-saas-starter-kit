@@ -16,6 +16,13 @@ return new class extends Migration
             $table->string('email');
             $table->string('domain')->unique();
             $table->string('status')->index();
+            $table->string('database_connection')->default('tenant');
+            $table->string('database_driver')->default('pgsql');
+            $table->string('database_host')->nullable();
+            $table->unsignedInteger('database_port')->nullable();
+            $table->string('database_name');
+            $table->string('database_username')->nullable();
+            $table->string('database_password')->nullable();
             $table->jsonb('settings')->nullable();
             $table->timestamp('trial_ends_at')->nullable();
             $table->timestamps();
@@ -27,4 +34,3 @@ return new class extends Migration
         Schema::dropIfExists('tenants');
     }
 };
-

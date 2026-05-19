@@ -8,7 +8,6 @@ use App\Central\Enums\TenantStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class Tenant extends Model
 {
@@ -24,6 +23,13 @@ final class Tenant extends Model
         'email',
         'domain',
         'status',
+        'database_connection',
+        'database_driver',
+        'database_host',
+        'database_port',
+        'database_name',
+        'database_username',
+        'database_password',
         'settings',
         'trial_ends_at',
     ];
@@ -36,10 +42,4 @@ final class Tenant extends Model
             'status' => TenantStatus::class,
         ];
     }
-
-    public function users(): HasMany
-    {
-        return $this->hasMany(\App\Models\User::class, 'tenant_id');
-    }
 }
-

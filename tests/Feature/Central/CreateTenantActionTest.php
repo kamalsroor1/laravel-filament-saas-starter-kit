@@ -9,6 +9,7 @@ use App\Central\Events\TenantCreated;
 use App\Central\Models\Tenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 
 it('creates tenant and fires tenant created event', function (): void {
     Event::fake();
@@ -17,6 +18,8 @@ it('creates tenant and fires tenant created event', function (): void {
         name: 'Acme Inc',
         email: 'ops@acme.test',
         domain: 'acme.localhost',
+        database_name: database_path('tenant_'.Str::uuid().'.sqlite'),
+        database_driver: 'sqlite',
         status: TenantStatus::Trial,
         settings: ['timezone' => 'UTC'],
         trial_ends_at: CarbonImmutable::parse('2026-06-01 00:00:00'),
@@ -30,4 +33,3 @@ it('creates tenant and fires tenant created event', function (): void {
 
     Event::assertDispatched(TenantCreated::class);
 });
-

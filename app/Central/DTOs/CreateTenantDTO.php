@@ -17,10 +17,16 @@ final readonly class CreateTenantDTO extends BaseDTO
         public string $name,
         public string $email,
         public string $domain,
+        public string $database_name,
+        public string $database_connection = 'tenant',
+        public string $database_driver = 'pgsql',
+        public ?string $database_host = null,
+        public ?int $database_port = null,
+        public ?string $database_username = null,
+        public ?string $database_password = null,
         public TenantStatus $status = TenantStatus::Trial,
         public array $settings = [],
         public ?CarbonImmutable $trial_ends_at = null,
     ) {
     }
 }
-
